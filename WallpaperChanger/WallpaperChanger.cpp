@@ -4,6 +4,7 @@
 #include <random>
 #include <thread>
 #include <opencv2/opencv.hpp>
+#include "RandomFile.h"
 
 namespace fs = std::filesystem;
 
@@ -111,6 +112,7 @@ int main() {
     }
 
     bool isFirstSet = true;
+    RandomFile randomFile = RandomImageFile(folderPath);
     while (true) {
         try {
             std::string imagePath = getRandomImage(folderPath);

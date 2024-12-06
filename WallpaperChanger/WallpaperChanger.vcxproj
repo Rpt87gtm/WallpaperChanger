@@ -135,7 +135,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="RandomGenerator.cpp" />
     <ClCompile Include="WallpaperChanger.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="IRandomGenerator.h" />
+    <ClInclude Include="RandomFile.h" />
+    <ClInclude Include="RandomGenerator.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
