@@ -8,9 +8,10 @@
 #include <random>
 #include "IRandomGenerator.h"
 #include "RandomGenerator.h"
+#include "IFileData.h"
 
 template<typename T>
-class RandomFile
+class RandomFile : public IFileData<T>
 {
 public:
     RandomFile(const std::filesystem::path& folderPath, IRandomGenerator* generator = nullptr)
@@ -43,7 +44,7 @@ public:
         currentFilePath = files[randomIndex].string();
     };
 
-    virtual std::vector<T> Data() {
+    virtual std::vector<T> Data() override {
         std::ifstream file(currentFilePath, std::ios::binary | std::ios::ate);
         if (!file.is_open()) {
             throw std::runtime_error("Could not open the file: " + currentFilePath.string());

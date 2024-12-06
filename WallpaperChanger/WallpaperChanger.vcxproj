@@ -135,10 +135,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ImageDecoder.cpp" />
     <ClCompile Include="RandomGenerator.cpp" />
     <ClCompile Include="WallpaperChanger.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="IFileData.h" />
+    <ClInclude Include="ImageDecoder.h" />
     <ClInclude Include="IRandomGenerator.h" />
     <ClInclude Include="RandomFile.h" />
     <ClInclude Include="RandomGenerator.h" />

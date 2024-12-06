@@ -5,6 +5,7 @@
 #include <thread>
 #include <opencv2/opencv.hpp>
 #include "RandomFile.h"
+#include "ImageDecoder.h"
 
 namespace fs = std::filesystem;
 
@@ -18,57 +19,15 @@ void setWallpaper(const std::string& imagePath) {
     system(command.c_str());
 }
 
-std::string getRandomImage(const fs::path& folderPath) {
-    std::vector<std::string> imagePaths;
-    for (const auto& entry : fs::directory_iterator(folderPath)) {
-        if (entry.path().extension() == ".jpg" || entry.path().extension() == ".png") {
-            imagePaths.push_back(entry.path().string());
-        }
-    }
 
-    if (imagePaths.empty()) {
-        throw std::runtime_error("No images found in the specified folder.");
-    }
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(0, imagePaths.size() - 1);
-    return imagePaths[dis(gen)];
-}
 
-cv::Mat loadImageFromRawData(const std::string& imagePath) {
-    std::ifstream file(imagePath, std::ios::binary | std::ios::ate);
-    if (!file.is_open()) {
-        std::cerr << "Could not open the file: " << imagePath << std::endl;
-        return cv::Mat();
-    }
 
-    std::streamsize size = file.tellg();
-    file.seekg(0, std::ios::beg);
+void createIntermediateImages(RandomImageFile& imageFile, std::vector<std::string>& intermediateShowPaths, std::vector<std::string>& intermediateHidePaths, int numIntermediates, const fs::path& outputDir, const bool isFirstSet) {
 
-    std::vector<char> buffer(size);
-
-    if (!file.read(buffer.data(), size)) {
-        std::cerr << "Could not read the file: " << imagePath << std::endl;
-        return cv::Mat();
-    }
-
-    cv::Mat rawData(1, size, CV_8UC1, buffer.data());
-    cv::Mat image = cv::imdecode(rawData, cv::IMREAD_COLOR);
-
+    cv::Mat image = ImageDecoder::Decode(imageFile.Data());
     if (image.empty()) {
-        std::cerr << "Could not decode the image" << std::endl;
-        return cv::Mat();
-    }
-
-    return image;
-}
-
-
-void createIntermediateImages(const std::string& imagePath, std::vector<std::string>& intermediateShowPaths, std::vector<std::string>& intermediateHidePaths, int numIntermediates, const fs::path& outputDir, const bool isFirstSet) {
-    cv::Mat image = loadImageFromRawData(imagePath);
-    if (image.empty()) {
-        throw std::runtime_error("Failed to load image: " + imagePath);
+        throw std::runtime_error("Failed to load image: " + imageFile.Path());
     }
 
     std::string ShowSetName = isFirstSet ? "intermediateSet1_" : "intermediateSet2_";
@@ -112,20 +71,21 @@ int main() {
     }
 
     bool isFirstSet = true;
-    RandomFile randomFile = RandomImageFile(folderPath);
+    RandomImageFile randomFile = RandomImageFile(folderPath);
+
     while (true) {
         try {
-            std::string imagePath = getRandomImage(folderPath);
-            std::cout << "Selected image: " << imagePath << std::endl;
+            
+            std::cout << "Selected image: " << randomFile.Path() << std::endl;
 
             std::vector<std::string> intermediateShowPaths;
             std::vector<std::string> intermediateHidePaths;
-            createIntermediateImages(imagePath, intermediateShowPaths, intermediateHidePaths, numIntermediates, outputDir, isFirstSet);
+            createIntermediateImages(randomFile, intermediateShowPaths, intermediateHidePaths, numIntermediates, outputDir, isFirstSet);
             isFirstSet = !isFirstSet;
 
             smoothWallpaperTransition(intermediateShowPaths, intermediateHidePaths, transitionDelay);
 
-            setWallpaper(imagePath);
+            setWallpaper(randomFile.Path());
             std::this_thread::sleep_for(std::chrono::seconds(delaySeconds));
         }
         catch (const std::exception& e) {
